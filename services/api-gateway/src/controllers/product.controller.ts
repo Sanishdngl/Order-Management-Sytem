@@ -4,8 +4,18 @@ import { productClient } from "../clients/grpc.client";
 // Helper — wraps gRPC callback into a Promise
 const grpcCall = <T>(method: Function, payload: object): Promise<T> => {
   return new Promise((resolve, reject) => {
-    method.call(productClient, payload, (err: Error, response: T) => {
-      if (err) return reject(err);
+    method.call(productClient, payload, (err: any, response: T) => {
+      if (err) {
+        // Try to parse enriched error from error interceptor
+        try {
+          const parsed = JSON.parse(err.details);
+          err.httpStatus = parsed.httpStatus;
+          err.message = parsed.message;
+        } catch {
+          err.httpStatus = 500;
+        }
+        return reject(err);
+      }
       resolve(response);
     });
   });
