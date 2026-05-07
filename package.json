@@ -7,7 +7,8 @@
     "gateway": "cd services/api-gateway && npm run dev",
     "product": "cd services/product-service && npm run dev",
     "order": "cd services/order-service && npm run dev",
-    "dev": "concurrently \"npm run gateway\" \"npm run product\" \"npm run order\""
+    "dev": "concurrently \"npm run gateway\" \"npm run product\" \"npm run order\"",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,13 @@
   },
   "homepage": "https://github.com/Sanishdngl/Order-Management-Sytem-micro-gRPC-#readme",
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.2"
+  },
+  "lint-staged": {
+    "services/**/*.ts": [
+      "prettier --write"
+    ]
   }
 }
