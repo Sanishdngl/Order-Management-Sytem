@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package product;
+
+// ── Service Definition ──────────────────────────────
+service ProductService {
+  rpc GetProduct    (GetProductRequest)    returns (ProductResponse);
+  rpc GetAllProducts(GetAllProductsRequest) returns (ProductListResponse);
+  rpc CreateProduct (CreateProductRequest) returns (ProductResponse);
+  rpc UpdateProduct (UpdateProductRequest) returns (ProductResponse);
+  rpc DeleteProduct (DeleteProductRequest) returns (DeleteProductResponse);
+}
+
+// ── Request Messages ─────────────────────────────────
+message GetProductRequest {
+  int32 id = 1;
+}
+
+message GetAllProductsRequest {
+  string category = 1; // optional filter
+}
+
+message CreateProductRequest {
+  string name        = 1;
+  string description = 2;
+  float  price       = 3;
+  int32  stock       = 4;
+  string category    = 5;
+}
+
+message UpdateProductRequest {
+  int32  id          = 1;
+  string name        = 2;
+  string description = 3;
+  float  price       = 4;
+  int32  stock       = 5;
+  string category    = 6;
+}
+
+message DeleteProductRequest {
+  int32 id = 1;
+}
+
+// ── Response Messages ────────────────────────────────
+message Product {
+  int32  id          = 1;
+  string name        = 2;
+  string description = 3;
+  float  price       = 4;
+  int32  stock       = 5;
+  string category    = 6;
+  string created_at  = 7;
+}
+
+message ProductResponse {
+  bool    success = 1;
+  string  message = 2;
+  Product product = 3;
+}
+
+message ProductListResponse {
+  bool             success  = 1;
+  int32            count    = 2;
+  repeated Product products = 3;
+}
+
+message DeleteProductResponse {
+  bool   success = 1;
+  string message = 2;
+}
