@@ -1,0 +1,27 @@
+{
+  "name": "order-management-sytem",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "gateway": "cd services/api-gateway && npm run dev",
+    "product": "cd services/product-service && npm run dev",
+    "order": "cd services/order-service && npm run dev",
+    "dev": "concurrently \"npm run gateway\" \"npm run product\" \"npm run order\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sanishdngl/Order-Management-Sytem-micro-gRPC-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Sanishdngl/Order-Management-Sytem-micro-gRPC-/issues"
+  },
+  "homepage": "https://github.com/Sanishdngl/Order-Management-Sytem-micro-gRPC-#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
