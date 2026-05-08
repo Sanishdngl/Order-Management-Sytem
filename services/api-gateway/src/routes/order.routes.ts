@@ -5,8 +5,12 @@ import {
   createOrder,
   updateOrderStatus,
 } from '../controllers/order.controller';
+import { authMiddleware } from '../middlewares/auth.middleware';
+import { rbac } from '../middlewares/rbac.middleware';
 
 const router = Router();
+
+router.use(authMiddleware);
 
 /**
  * @swagger
@@ -60,7 +64,7 @@ const router = Router();
  *       200:
  *         description: List of orders
  */
-router.get('/', getAllOrders);
+router.get('/', rbac('orders:read'), getAllOrders);
 
 /**
  * @swagger
@@ -80,7 +84,7 @@ router.get('/', getAllOrders);
  *       404:
  *         description: Order not found
  */
-router.get('/:id', getOrder);
+router.get('/:id', rbac('orders:read'), getOrder);
 
 /**
  * @swagger
@@ -116,7 +120,7 @@ router.get('/:id', getOrder);
  *       400:
  *         description: Missing required fields
  */
-router.post('/', createOrder);
+router.post('/', rbac('orders:create'), createOrder);
 
 /**
  * @swagger
@@ -150,6 +154,6 @@ router.post('/', createOrder);
  *       404:
  *         description: Order not found
  */
-router.patch('/:id/status', updateOrderStatus);
+router.patch('/:id/status', rbac('orders:update'), updateOrderStatus);
 
 export default router;

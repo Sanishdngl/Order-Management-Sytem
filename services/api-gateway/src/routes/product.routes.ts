@@ -6,8 +6,12 @@ import {
   updateProduct,
   deleteProduct,
 } from '../controllers/product.controller';
+import { authMiddleware } from '../middlewares/auth.middleware';
+import { rbac } from '../middlewares/rbac.middleware';
 
 const router = Router();
+
+router.use(authMiddleware);
 
 /**
  * @swagger
@@ -48,7 +52,7 @@ const router = Router();
  *       200:
  *         description: List of products
  */
-router.get('/', getAllProducts);
+router.get('/', rbac('products:read'), getAllProducts);
 
 /**
  * @swagger
@@ -68,7 +72,7 @@ router.get('/', getAllProducts);
  *       404:
  *         description: Product not found
  */
-router.get('/:id', getProduct);
+router.get('/:id', rbac('products:read'), getProduct);
 
 /**
  * @swagger
@@ -105,7 +109,7 @@ router.get('/:id', getProduct);
  *       400:
  *         description: Missing required fields
  */
-router.post('/', createProduct);
+router.post('/', rbac('products:create'), createProduct);
 
 /**
  * @swagger
@@ -139,7 +143,7 @@ router.post('/', createProduct);
  *       404:
  *         description: Product not found
  */
-router.put('/:id', updateProduct);
+router.put('/:id', rbac('products:update'), updateProduct);
 
 /**
  * @swagger
@@ -159,6 +163,6 @@ router.put('/:id', updateProduct);
  *       404:
  *         description: Product not found
  */
-router.delete('/:id', deleteProduct);
+router.delete('/:id', rbac('products:delete'), deleteProduct);
 
 export default router;
