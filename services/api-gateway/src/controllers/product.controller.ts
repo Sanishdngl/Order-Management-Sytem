@@ -1,16 +1,21 @@
-import { Request, Response } from "express";
-import { productClient } from "../clients/grpc.client";
+import { Request, Response } from 'express';
+import { productClient } from '../clients/grpc.client';
+import { GrpcError } from '../types/grpc.types';
 
-// Helper — wraps gRPC callback into a Promise
-const grpcCall = <T>(method: Function, payload: object): Promise<T> => {
+const grpcCall = <TPayload extends object, TResponse>(
+  method: (
+    payload: TPayload,
+    cb: (err: GrpcError | null, res: TResponse) => void,
+  ) => void,
+  payload: TPayload,
+): Promise<TResponse> => {
   return new Promise((resolve, reject) => {
-    method.call(productClient, payload, (err: any, response: T) => {
+    method(payload, (err: GrpcError | null, response: TResponse) => {
       if (err) {
-        // Try to parse enriched error from error interceptor
         try {
-          const parsed = JSON.parse(err.details);
+          const parsed = JSON.parse(err.details || '{}');
           err.httpStatus = parsed.httpStatus;
-          err.message = parsed.message;
+          err.message = parsed.message || err.message;
         } catch {
           err.httpStatus = 500;
         }
@@ -21,71 +26,68 @@ const grpcCall = <T>(method: Function, payload: object): Promise<T> => {
   });
 };
 
-// GET /api/products
+const handleGrpcError = (err: unknown, res: Response): void => {
+  const grpcErr = err as GrpcError;
+  res.status(grpcErr.httpStatus || 500).json({
+    success: false,
+    message: grpcErr.message || 'Internal server error',
+  });
+};
+
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
-    const data = await grpcCall<any>(
-      productClient.GetAllProducts.bind(productClient),
-      { category: req.query.category || "" }
+    const data = await grpcCall(
+      (p, cb) => productClient.GetAllProducts(p, cb),
+      { category: String(req.query.category ?? '') },
     );
     res.json(data);
-  } catch (err: any) {
-    res.status(500).json({ success: false, message: err.message });
+  } catch (err) {
+    handleGrpcError(err, res);
   }
 };
 
-// GET /api/products/:id
 export const getProduct = async (req: Request, res: Response) => {
   try {
-    const data = await grpcCall<any>(
-      productClient.GetProduct.bind(productClient),
-      { id: Number(req.params.id) }
-    );
+    const data = await grpcCall((p, cb) => productClient.GetProduct(p, cb), {
+      id: Number(req.params.id),
+    });
     res.json(data);
-  } catch (err: any) {
-    const status = err.code === 5 ? 404 : 500; // 5 = NOT_FOUND
-    res.status(status).json({ success: false, message: err.message });
+  } catch (err) {
+    handleGrpcError(err, res);
   }
 };
 
-// POST /api/products
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const data = await grpcCall<any>(
-      productClient.CreateProduct.bind(productClient),
-      req.body
+    const data = await grpcCall(
+      (p, cb) => productClient.CreateProduct(p, cb),
+      req.body,
     );
     res.status(201).json(data);
-  } catch (err: any) {
-    const status = err.code === 3 ? 400 : 500; // 3 = INVALID_ARGUMENT
-    res.status(status).json({ success: false, message: err.message });
+  } catch (err) {
+    handleGrpcError(err, res);
   }
 };
 
-// PUT /api/products/:id
 export const updateProduct = async (req: Request, res: Response) => {
   try {
-    const data = await grpcCall<any>(
-      productClient.UpdateProduct.bind(productClient),
-      { id: Number(req.params.id), ...req.body }
-    );
+    const data = await grpcCall((p, cb) => productClient.UpdateProduct(p, cb), {
+      id: Number(req.params.id),
+      ...req.body,
+    });
     res.json(data);
-  } catch (err: any) {
-    const status = err.code === 5 ? 404 : 500;
-    res.status(status).json({ success: false, message: err.message });
+  } catch (err) {
+    handleGrpcError(err, res);
   }
 };
 
-// DELETE /api/products/:id
 export const deleteProduct = async (req: Request, res: Response) => {
   try {
-    const data = await grpcCall<any>(
-      productClient.DeleteProduct.bind(productClient),
-      { id: Number(req.params.id) }
-    );
+    const data = await grpcCall((p, cb) => productClient.DeleteProduct(p, cb), {
+      id: Number(req.params.id),
+    });
     res.json(data);
-  } catch (err: any) {
-    const status = err.code === 5 ? 404 : 500;
-    res.status(status).json({ success: false, message: err.message });
+  } catch (err) {
+    handleGrpcError(err, res);
   }
 };

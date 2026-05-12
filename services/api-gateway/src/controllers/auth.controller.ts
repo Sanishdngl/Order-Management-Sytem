@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { findUserByEmail } from '../config/users';
 
@@ -32,7 +32,7 @@ export const login = async (req: Request, res: Response) => {
   const token = jwt.sign(
     { id: user.id, name: user.name, email: user.email, role: user.role },
     process.env.JWT_SECRET || 'supersecretkey123',
-    { expiresIn: process.env.JWT_EXPIRES_IN || '1h' },
+    { expiresIn: '1h' },
   );
 
   res.json({

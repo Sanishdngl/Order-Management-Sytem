@@ -1,65 +1,81 @@
-import { Request, Response } from "express";
-import { orderClient } from "../clients/grpc.client";
+import { Request, Response } from 'express';
+import { orderClient } from '../clients/grpc.client';
+import { GrpcError } from '../types/grpc.types';
 
-const grpcCall = <T>(method: Function, payload: object): Promise<T> => {
+const grpcCall = <TPayload extends object, TResponse>(
+  method: (
+    payload: TPayload,
+    cb: (err: GrpcError | null, res: TResponse) => void,
+  ) => void,
+  payload: TPayload,
+): Promise<TResponse> => {
   return new Promise((resolve, reject) => {
-    method.call(orderClient, payload, (err: Error, response: T) => {
-      if (err) return reject(err);
+    method(payload, (err: GrpcError | null, response: TResponse) => {
+      if (err) {
+        try {
+          const parsed = JSON.parse(err.details || '{}');
+          err.httpStatus = parsed.httpStatus;
+          err.message = parsed.message || err.message;
+        } catch {
+          err.httpStatus = 500;
+        }
+        return reject(err);
+      }
       resolve(response);
     });
   });
 };
 
-// GET /api/orders
+const handleGrpcError = (err: unknown, res: Response): void => {
+  const grpcErr = err as GrpcError;
+  res.status(grpcErr.httpStatus || 500).json({
+    success: false,
+    message: grpcErr.message || 'Internal server error',
+  });
+};
+
 export const getAllOrders = async (req: Request, res: Response) => {
   try {
-    const data = await grpcCall<any>(
-      orderClient.GetAllOrders.bind(orderClient),
-      { status: req.query.status || "" }
-    );
-    res.json(data);
-  } catch (err: any) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
-
-// GET /api/orders/:id
-export const getOrder = async (req: Request, res: Response) => {
-  try {
-    const data = await grpcCall<any>(orderClient.GetOrder.bind(orderClient), {
-      id: req.params.id,
+    const data = await grpcCall((p, cb) => orderClient.GetAllOrders(p, cb), {
+      status: String(req.query.status ?? ''),
     });
     res.json(data);
-  } catch (err: any) {
-    const status = err.code === 5 ? 404 : 500;
-    res.status(status).json({ success: false, message: err.message });
+  } catch (err) {
+    handleGrpcError(err, res);
   }
 };
 
-// POST /api/orders
+export const getOrder = async (req: Request, res: Response) => {
+  try {
+    const data = await grpcCall((p, cb) => orderClient.GetOrder(p, cb), {
+      id: req.params.id as string,
+    });
+    res.json(data);
+  } catch (err) {
+    handleGrpcError(err, res);
+  }
+};
+
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    const data = await grpcCall<any>(
-      orderClient.CreateOrder.bind(orderClient),
-      req.body
+    const data = await grpcCall(
+      (p, cb) => orderClient.CreateOrder(p, cb),
+      req.body,
     );
     res.status(201).json(data);
-  } catch (err: any) {
-    const status = err.code === 3 ? 400 : 500;
-    res.status(status).json({ success: false, message: err.message });
+  } catch (err) {
+    handleGrpcError(err, res);
   }
 };
 
-// PATCH /api/orders/:id/status
 export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
-    const data = await grpcCall<any>(
-      orderClient.UpdateOrderStatus.bind(orderClient),
-      { id: req.params.id, status: req.body.status }
+    const data = await grpcCall(
+      (p, cb) => orderClient.UpdateOrderStatus(p, cb),
+      { id: req.params.id as string, status: req.body.status as string },
     );
     res.json(data);
-  } catch (err: any) {
-    const status = err.code === 5 ? 404 : err.code === 3 ? 400 : 500;
-    res.status(status).json({ success: false, message: err.message });
+  } catch (err) {
+    handleGrpcError(err, res);
   }
 };
