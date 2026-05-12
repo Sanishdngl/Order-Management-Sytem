@@ -2,13 +2,15 @@ syntax = "proto3";
 
 package product;
 
-// ── Service Definition ──────────────────────────────
-service ProductService {
-  rpc GetProduct    (GetProductRequest)    returns (ProductResponse);
-  rpc GetAllProducts(GetAllProductsRequest) returns (ProductListResponse);
-  rpc CreateProduct (CreateProductRequest) returns (ProductResponse);
-  rpc UpdateProduct (UpdateProductRequest) returns (ProductResponse);
-  rpc DeleteProduct (DeleteProductRequest) returns (DeleteProductResponse);
+// ── Core Model ───────────────────────────────────────
+message Product {
+  int32  id          = 1;
+  string name        = 2;
+  string description = 3;
+  float  price       = 4;
+  int32  stock       = 5;
+  string category    = 6;
+  string created_at  = 7;
 }
 
 // ── Request Messages ─────────────────────────────────
@@ -17,7 +19,7 @@ message GetProductRequest {
 }
 
 message GetAllProductsRequest {
-  string category = 1; // optional filter
+  string category = 1;
 }
 
 message CreateProductRequest {
@@ -42,16 +44,6 @@ message DeleteProductRequest {
 }
 
 // ── Response Messages ────────────────────────────────
-message Product {
-  int32  id          = 1;
-  string name        = 2;
-  string description = 3;
-  float  price       = 4;
-  int32  stock       = 5;
-  string category    = 6;
-  string created_at  = 7;
-}
-
 message ProductResponse {
   bool    success = 1;
   string  message = 2;

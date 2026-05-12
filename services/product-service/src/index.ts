@@ -10,7 +10,10 @@ import {
   deleteProduct,
 } from './handlers/product.handler';
 
-const PROTO_PATH = path.join(__dirname, '../../../proto/product.proto');
+const PROTO_PATH = path.join(
+  __dirname,
+  '../../../proto/services/product.proto',
+);
 const PORT = process.env.GRPC_PORT || '50051';
 
 // Load .proto file
@@ -20,6 +23,7 @@ const packageDef = protoLoader.loadSync(PROTO_PATH, {
   enums: String,
   defaults: true,
   oneofs: true,
+  includeDirs: [path.join(__dirname, '../../../proto')],
 });
 
 interface ProductServiceProto {

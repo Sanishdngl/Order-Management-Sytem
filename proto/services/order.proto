@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package order;
+
+import "messages/order_messages.proto";
+
+service OrderService {
+  rpc GetOrder          (GetOrderRequest)          returns (OrderResponse);
+  rpc GetAllOrders      (GetAllOrdersRequest)       returns (OrderListResponse);
+  rpc CreateOrder       (CreateOrderRequest)        returns (OrderResponse);
+  rpc UpdateOrderStatus (UpdateOrderStatusRequest)  returns (OrderResponse);
+}

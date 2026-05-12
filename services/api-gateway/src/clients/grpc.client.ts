@@ -17,8 +17,16 @@ interface OrderProto {
   };
 }
 
-const PRODUCT_PROTO = path.join(__dirname, '../../../../proto/product.proto');
-const ORDER_PROTO = path.join(__dirname, '../../../../proto/order.proto');
+const PRODUCT_PROTO = path.join(
+  __dirname,
+  '../../../../proto/services/product.proto',
+);
+const ORDER_PROTO = path.join(
+  __dirname,
+  '../../../../proto/services/order.proto',
+);
+
+const PROTO_ROOT = path.join(__dirname, '../../../../proto');
 
 const loaderOptions: protoLoader.Options = {
   keepCase: true,
@@ -26,6 +34,7 @@ const loaderOptions: protoLoader.Options = {
   enums: String,
   defaults: true,
   oneofs: true,
+  includeDirs: [PROTO_ROOT],
 };
 
 const channelOptions: grpc.ChannelOptions = {

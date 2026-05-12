@@ -9,7 +9,7 @@ import {
   updateOrderStatus,
 } from './handlers/order.handler';
 
-const PROTO_PATH = path.join(__dirname, '../../../proto/order.proto');
+const PROTO_PATH = path.join(__dirname, '../../../proto/services/order.proto');
 const PORT = process.env.GRPC_PORT || '50052';
 
 // Load .proto file
@@ -19,6 +19,7 @@ const packageDef = protoLoader.loadSync(PROTO_PATH, {
   enums: String,
   defaults: true,
   oneofs: true,
+  includeDirs: [path.join(__dirname, '../../../proto')],
 });
 
 interface OrderServiceProto {
