@@ -8,6 +8,12 @@
     "product": "cd services/product-service && npm run dev",
     "order": "cd services/order-service && npm run dev",
     "dev": "concurrently \"npm run gateway\" \"npm run product\" \"npm run order\"",
+    "docker:up": "docker-compose up -d",
+    "docker:up:build": "docker-compose up -d --build",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:ps": "docker-compose ps",
+    "docker:clean": "docker-compose down -v --rmi all",
     "prepare": "husky"
   },
   "repository": {

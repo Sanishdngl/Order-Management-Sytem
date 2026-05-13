@@ -17,16 +17,15 @@ interface OrderProto {
   };
 }
 
-const PRODUCT_PROTO = path.join(
+const isProd = process.env.NODE_ENV === 'production';
+
+const PROTO_ROOT = path.join(
   __dirname,
-  '../../../../proto/services/product.proto',
-);
-const ORDER_PROTO = path.join(
-  __dirname,
-  '../../../../proto/services/order.proto',
+  isProd ? '../proto' : '../../../../proto',
 );
 
-const PROTO_ROOT = path.join(__dirname, '../../../../proto');
+const PRODUCT_PROTO = path.join(PROTO_ROOT, 'services/product.proto');
+const ORDER_PROTO = path.join(PROTO_ROOT, 'services/order.proto');
 
 const loaderOptions: protoLoader.Options = {
   keepCase: true,
@@ -64,3 +63,4 @@ export const orderClient = new orderProto.order.OrderService(
 ) as unknown as OrderClient;
 
 console.log('gRPC clients initialized');
+console.log(`📁 Proto root: ${PROTO_ROOT}`);

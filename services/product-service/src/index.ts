@@ -10,11 +10,12 @@ import {
   deleteProduct,
 } from './handlers/product.handler';
 
-const PROTO_PATH = path.join(
-  __dirname,
-  '../../../proto/services/product.proto',
-);
 const PORT = process.env.GRPC_PORT || '50051';
+const isProd = process.env.NODE_ENV === 'production';
+
+const PROTO_ROOT = path.join(__dirname, isProd ? '../proto' : '../../../proto');
+
+const PROTO_PATH = path.join(PROTO_ROOT, 'services/product.proto');
 
 // Load .proto file
 const packageDef = protoLoader.loadSync(PROTO_PATH, {
@@ -23,7 +24,7 @@ const packageDef = protoLoader.loadSync(PROTO_PATH, {
   enums: String,
   defaults: true,
   oneofs: true,
-  includeDirs: [path.join(__dirname, '../../../proto')],
+  includeDirs: [PROTO_ROOT],
 });
 
 interface ProductServiceProto {
@@ -57,5 +58,7 @@ server.bindAsync(
       process.exit(1);
     }
     console.log(`Product Service running on port ${port}`);
+    console.log(`📁 Proto root: ${PROTO_ROOT}`);
+    console.log(`📄 Proto path: ${PROTO_PATH}`);
   },
 );

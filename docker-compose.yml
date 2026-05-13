@@ -1,0 +1,81 @@
+services:
+  # ── Product Service ────────────────────────────
+  product-service:
+    build:
+      context: . # root context — sees proto/ folder
+      dockerfile: services/product-service/Dockerfile
+    container_name: order_product_service
+    environment:
+      - GRPC_PORT=50051
+      - NODE_ENV=production
+    expose:
+      - "50051" # internal only — not exposed to host
+    networks:
+      - order_network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').createConnection(50051, 'localhost').on('connect', () => process.exit(0)).on('error', () => process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+
+  # ── Order Service ──────────────────────────────
+  order-service:
+    build:
+      context: .
+      dockerfile: services/order-service/Dockerfile
+    container_name: order_order_service
+    environment:
+      - GRPC_PORT=50052
+      - NODE_ENV=production
+    expose:
+      - "50052" # internal only
+    networks:
+      - order_network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').createConnection(50052, 'localhost').on('connect', () => process.exit(0)).on('error', () => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ── API Gateway ────────────────────────────────
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: order_api_gateway
+    ports:
+      - "5001:5001" # exposed to host
+    environment:
+      - PORT=5001
+      - NODE_ENV=production
+      - PRODUCT_SERVICE_URL=product-service:50051 # Docker service name as hostname
+      - ORDER_SERVICE_URL=order-service:50052 # Docker service name as hostname
+      - JWT_SECRET=supersecretkey123
+      - JWT_EXPIRES_IN=1h
+    networks:
+      - order_network
+    depends_on:
+      product-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+# ── Shared Network ─────────────────────────────
+networks:
+  order_network:
+    driver: bridge
